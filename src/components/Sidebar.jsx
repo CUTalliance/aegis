@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sword, Users, Target, Info, Megaphone, Download, ClipboardList, Upload, LogOut, Settings, Key } from 'lucide-react';
 import { COLORS } from '../utils/theme';
 import AboutDialog from './AboutDialog';
 import { useMembersStore } from '../store/membersStore';
 import { useEventsStore } from '../store/eventsStore';
-import { useCurrentEventStore } from '../store/currentEventStore';
 import { useAuthStore } from '../store/authStore';
 import { publishPlanToGithub } from '../services/githubSync';
 
@@ -14,6 +13,7 @@ const Sidebar = ({ currentPage, onPageChange }) => {
   const [tokenInput, setTokenInput] = useState('');
   const [publishStatus, setPublishStatus] = useState(null); // 'loading' | 'success' | 'error'
   const [publishMsg, setPublishMsg] = useState('');
+  const [blinkSync, setBlinkSync] = useState(false);
 
   const role = useAuthStore((s) => s.role);
   const logout = useAuthStore((s) => s.logout);
@@ -27,7 +27,6 @@ const Sidebar = ({ currentPage, onPageChange }) => {
   const allNavItems = [
     { id: 'dashboard', label: 'Dashboard', icon: Sword, adminOnly: false },
     { id: 'my-orders', label: 'My Orders', icon: ClipboardList, adminOnly: false },
-    { id: 'current-event', label: 'Current Event', icon: Megaphone, adminOnly: true },
     { id: 'roster', label: 'Member List', icon: Users, adminOnly: true },
     { id: 'planner', label: 'Event Planner', icon: Target, adminOnly: true },
   ];
@@ -136,7 +135,7 @@ const Sidebar = ({ currentPage, onPageChange }) => {
     const incomingEvents = data.events || [];
     const incomingFinished = data.finishedEvents || [];
     const incomingMap = data.mapLayout || {};
-    const incomingCurrent = data.currentEvent || data.eventData || null;
+    // current-event removed; ignore currentEvent from backups
 
     const replace = window.confirm(
       'How would you like to restore?\n\nOK = Replace all current data with the backup.\nCancel = Merge new members and events into existing data.'
@@ -175,9 +174,7 @@ const Sidebar = ({ currentPage, onPageChange }) => {
         }));
       }
 
-      if (incomingCurrent) {
-        useCurrentEventStore.getState().updateEvent(incomingCurrent);
-      }
+      // no-op: current-event handling removed
 
       alert('✅ Backup restored successfully!');
     } catch (err) {
@@ -188,9 +185,31 @@ const Sidebar = ({ currentPage, onPageChange }) => {
     }
   };
 
+  // logout guard: ask R4 to sync before leaving
+  useEffect(() => {
+    if (!isR4) return undefined;
+    const beforeUnload = (e) => {
+      // modern browsers show a native prompt when returnValue is set
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', beforeUnload);
+    return () => window.removeEventListener('beforeunload', beforeUnload);
+  }, [isR4]);
+
+  const handleLogoutAttempt = () => {
+    const confirmed = window.confirm('Have you synchronized the data to the Alliance?\n\nPress OK to proceed with logout, Cancel to stay and synchronize.');
+    if (confirmed) {
+      logout();
+    } else {
+      setBlinkSync(true);
+      setTimeout(() => setBlinkSync(false), 4000);
+    }
+  };
+
   return (
     <div
-      className="w-56 h-screen flex flex-col"
+      className="no-print w-56 h-screen flex flex-col"
       style={{ backgroundColor: COLORS.sidebar }}
     >
       {/* Branding */}
@@ -226,6 +245,7 @@ const Sidebar = ({ currentPage, onPageChange }) => {
             className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-all ${
               currentPage === id ? 'font-semibold' : 'hover:opacity-80'
             }`}
+            title={`Go to ${label}`}
             style={{
               backgroundColor: currentPage === id ? COLORS.accent : 'transparent',
               color: currentPage === id ? '#1a1c1e' : COLORS.text_primary,
@@ -236,25 +256,33 @@ const Sidebar = ({ currentPage, onPageChange }) => {
           </button>
         ))}
 
-        {/* R4-only: Publish to Alliance */}
+        {/* R4-only: Publish to Alliance (synchronize) */}
         {isR4 && (
           <>
-            <div className="mt-4 mb-2 px-2">
+            <div className="mt-8 mb-2 px-2">
+              <p style={{ color: COLORS.danger, fontSize: 12, fontWeight: 700, marginBottom: 8 }}>
+                Reminder: synchronize the data to the Alliance before leaving or logging out.
+              </p>
               <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: COLORS.text_muted }}>
                 Alliance Sync
               </p>
             </div>
 
+            <style>{`@keyframes blink-border { 0% { box-shadow: 0 0 0 0 rgba(255,0,0,0.0); } 50% { box-shadow: 0 0 0 6px rgba(255,0,0,0.12); } 100% { box-shadow: 0 0 0 0 rgba(255,0,0,0.0); } }`}</style>
+
             <button
               onClick={handlePublish}
               disabled={publishStatus === 'loading'}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-all hover:opacity-90"
+              title="Synchronize current plan to the Alliance (GitHub)"
               style={{
                 backgroundColor: publishStatus === 'success' ? COLORS.success
                   : publishStatus === 'error' ? COLORS.danger
                   : COLORS.accent,
                 color: '#1a1c1e',
                 cursor: publishStatus === 'loading' ? 'wait' : 'pointer',
+                animation: blinkSync ? 'blink-border 1s infinite' : 'none',
+                border: blinkSync ? `2px solid ${COLORS.danger}` : undefined,
               }}
             >
               <Upload size={20} />
@@ -262,7 +290,7 @@ const Sidebar = ({ currentPage, onPageChange }) => {
                 {publishStatus === 'loading' ? 'Publishing...'
                   : publishStatus === 'success' ? 'Published!'
                   : publishStatus === 'error' ? 'Failed!'
-                  : 'Publish to Alliance'}
+                  : 'synchronize the data'}
               </span>
             </button>
 
@@ -278,6 +306,7 @@ const Sidebar = ({ currentPage, onPageChange }) => {
                 setShowTokenModal(true);
               }}
               className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-all hover:opacity-80"
+              title="Set or update the R4 command key"
               style={{ backgroundColor: '#ffffff10', color: 'white' }}
             >
               <Key size={20} />
@@ -289,6 +318,7 @@ const Sidebar = ({ currentPage, onPageChange }) => {
               <button
                 onClick={handleBackup}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-all hover:opacity-80"
+                title="Download a local backup of current data"
                 style={{ backgroundColor: '#ffffff10', color: 'white' }}
               >
                 <Download size={20} />
@@ -305,6 +335,7 @@ const Sidebar = ({ currentPage, onPageChange }) => {
               <button
                 onClick={handleRestoreClick}
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-lg mb-2 transition-all hover:opacity-80"
+                title="Restore data from a backup file"
                 style={{ backgroundColor: '#ffffff10', color: 'white' }}
               >
                 <Download size={20} />
@@ -318,8 +349,9 @@ const Sidebar = ({ currentPage, onPageChange }) => {
       {/* Footer */}
       <div className="px-4 py-4 border-t border-[#444950] space-y-2">
         <button
-          onClick={logout}
+          onClick={isR4 ? handleLogoutAttempt : logout}
           className="w-full flex items-center justify-center gap-2 text-xs hover:opacity-80 transition-opacity cursor-pointer py-2 rounded"
+          title="Log out of Aegis Planner"
           style={{ color: COLORS.danger, backgroundColor: `${COLORS.danger}15` }}
         >
           <LogOut size={14} />
@@ -328,6 +360,7 @@ const Sidebar = ({ currentPage, onPageChange }) => {
         <button
           onClick={() => setShowAbout(true)}
           className="w-full flex items-center justify-center gap-2 text-xs hover:opacity-80 transition-opacity cursor-pointer"
+          title="About Aegis Planner"
           style={{ color: COLORS.text_muted }}
         >
           <Info size={14} />
@@ -375,6 +408,7 @@ const Sidebar = ({ currentPage, onPageChange }) => {
               <button
                 onClick={handleSaveToken}
                 className="flex-1 py-2 rounded-lg font-semibold"
+                title="Save the R4 command key to this device"
                 style={{ backgroundColor: COLORS.accent, color: '#1a1c1e' }}
               >
                 Save Key
@@ -382,6 +416,7 @@ const Sidebar = ({ currentPage, onPageChange }) => {
               <button
                 onClick={handleClearToken}
                 className="py-2 px-4 rounded-lg font-semibold border"
+                title="Clear the saved command key from this device"
                 style={{
                   backgroundColor: COLORS.bg_primary,
                   borderColor: COLORS.danger,
@@ -393,6 +428,7 @@ const Sidebar = ({ currentPage, onPageChange }) => {
               <button
                 onClick={() => setShowTokenModal(false)}
                 className="py-2 px-4 rounded-lg font-semibold border"
+                title="Cancel and close token dialog"
                 style={{
                   backgroundColor: COLORS.bg_primary,
                   borderColor: COLORS.border,

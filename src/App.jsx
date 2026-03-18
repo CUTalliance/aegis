@@ -3,7 +3,6 @@ import Sidebar from './components/Sidebar';
 import Dashboard from './views/Dashboard';
 import Roster from './views/Roster';
 import EventPlanner from './views/EventPlanner';
-import CurrentEvent from './views/CurrentEvent';
 import MyOrders from './views/MyOrders';
 import Login from './views/Login';
 import { COLORS } from './utils/theme';
@@ -86,8 +85,7 @@ function App() {
         return isR4 ? <Roster /> : <Dashboard />;
       case 'planner':
         return isR4 ? <EventPlanner /> : <Dashboard />;
-      case 'current-event':
-        return isR4 ? <CurrentEvent /> : <Dashboard />;
+      // 'current-event' page removed per user request
       case 'my-orders':
         return <MyOrders />;
       default:

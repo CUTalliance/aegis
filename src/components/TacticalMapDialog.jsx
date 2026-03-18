@@ -5,9 +5,9 @@ import { exportTacticalMap, downloadFile } from '../services/mapExport';
 import { useEventsStore } from '../store/eventsStore';
 
 const MAP_SOURCES = {
-  RR: '/rr_map_base.png',
-  SVS: '/svs-map.png',
-  KOTH: '/KOTH-map.png',
+  RR: new URL('/rr_map_base.png', import.meta.url).href,
+  SVS: new URL('/svs-map.png', import.meta.url).href,
+  KOTH: new URL('/KOTH-map.png', import.meta.url).href,
 };
 
 const TacticalMapDialog = ({ isOpen, onClose, teams, teamInstructions, teamLeaders, eventType }) => {
@@ -239,13 +239,13 @@ const TacticalMapDialog = ({ isOpen, onClose, teams, teamInstructions, teamLeade
           <h2 className="text-xl font-bold text-white flex items-center gap-4">
             🗺️ Interactive Tactical Map - {eventType}
             <div className="flex bg-gray-900 rounded-md overflow-hidden text-sm border border-gray-600">
-                <button onClick={() => setScale(s => Math.max(s - 0.2, 0.2))} className="px-3 py-1 hover:bg-gray-700">-</button>
+                <button onClick={() => setScale(s => Math.max(s - 0.2, 0.2))} className="px-3 py-1 hover:bg-gray-700" title="Zoom out">-</button>
                 <div className="px-3 py-1 border-x border-gray-600">{Math.round(scale * 100)}%</div>
-                <button onClick={() => setScale(s => Math.min(s + 0.2, 5))} className="px-3 py-1 hover:bg-gray-700">+</button>
+                <button onClick={() => setScale(s => Math.min(s + 0.2, 5))} className="px-3 py-1 hover:bg-gray-700" title="Zoom in">+</button>
             </div>
             <span className="text-xs text-gray-400 ml-2">(Hold Ctrl and scroll mouse to zoom)</span>
           </h2>
-          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-600">
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-600" title="Close map dialog">
             <X size={24} className="text-gray-400" />
           </button>
         </div>
@@ -271,7 +271,7 @@ const TacticalMapDialog = ({ isOpen, onClose, teams, teamInstructions, teamLeade
                              {(() => {
                                  const leaderId = teamLeaders && teamLeaders[idx + 1];
                                  const leaderName = leaderId ? teams[idx].find((m) => m.id === leaderId)?.chief_name : null;
-                                 return leaderName ? `T${idx + 1} (${leaderName})` : `T${idx + 1}`;
+                                return leaderName ? `Team ${leaderName}` : `Team ${idx + 1}`;
                              })()}
                              <span className="absolute -top-1 -right-1 bg-red-600 font-normal outline outline-2 outline-gray-900 text-[11px] rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
                                {unplacedCount}
@@ -385,7 +385,7 @@ const TacticalMapDialog = ({ isOpen, onClose, teams, teamInstructions, teamLeade
                   {(() => {
                       const leaderId = teamLeaders && teamLeaders[token.teamIdx + 1];
                       const leaderName = leaderId ? teams[token.teamIdx].find((m) => m.id === leaderId)?.chief_name : null;
-                      return leaderName ? `T${token.teamIdx + 1} (${leaderName})` : `T${token.teamIdx + 1}`;
+                      return leaderName ? `Team ${leaderName}` : `Team ${token.teamIdx + 1}`;
                   })()}
                   <button 
                      onClick={(e) => {
@@ -415,7 +415,7 @@ const TacticalMapDialog = ({ isOpen, onClose, teams, teamInstructions, teamLeade
                   onMouseDown={(e) => handleMouseDown(e, zone.id, 'zone')}
                 >
                   {zone.text}
-                  <button onClick={() => handleDeleteZone(zone.id)} className="absolute -top-2 -right-2 p-1 bg-red-500 rounded-full"><X size={12}/></button>
+                  <button onClick={() => handleDeleteZone(zone.id)} className="absolute -top-2 -right-2 p-1 bg-red-500 rounded-full" title="Delete this zone"><X size={12}/></button>
                 </div>
               ))}
             </div>
@@ -425,14 +425,14 @@ const TacticalMapDialog = ({ isOpen, onClose, teams, teamInstructions, teamLeade
             <div>
               <h3 className="text-white text-sm mb-2">Add Zone Text</h3>
               <input type="text" value={newZoneText} onChange={(e) => setNewZoneText(e.target.value)} className="w-full p-1 rounded bg-gray-700 text-white"/>
-              <button onClick={handleAddZone} className="w-full mt-2 p-2 rounded bg-blue-500 text-white">Add</button>
+              <button onClick={handleAddZone} className="w-full mt-2 p-2 rounded bg-blue-500 text-white" title="Add a new named zone to the map">Add</button>
             </div>
             <div className="flex-1 overflow-y-auto">
                 <h3 className="text-white text-sm mb-2">Teams</h3>
                 {teams.map((team, idx) => {
                     const leaderId = teamLeaders && teamLeaders[idx + 1];
                     const leaderName = leaderId ? teams[idx].find((m) => m.id === leaderId)?.chief_name : null;
-                    const teamName = leaderName ? `Team ${idx + 1} (${leaderName})` : `Team ${idx + 1}`;
+                    const teamName = leaderName ? `Team ${leaderName}` : `Team ${idx + 1}`;
                     return (
                         <div key={idx} className="flex items-center gap-2 text-white">
                             <div className="w-4 h-4 rounded-full" style={{backgroundColor: teamColors[idx]}}></div>
@@ -441,7 +441,7 @@ const TacticalMapDialog = ({ isOpen, onClose, teams, teamInstructions, teamLeade
                     );
                 })}
             </div>
-            <button onClick={handleExport} disabled={isExporting} className="mt-auto p-2 rounded bg-green-500 text-white">
+            <button onClick={handleExport} disabled={isExporting} className="mt-auto p-2 rounded bg-green-500 text-white" title="Export map as PNG">
               {isExporting ? 'Exporting...' : 'Export Map'}
             </button>
           </div>
@@ -461,7 +461,7 @@ const TacticalMapDialog = ({ isOpen, onClose, teams, teamInstructions, teamLeade
              {(() => {
                  const leaderId = teamLeaders && teamLeaders[draggedSidebarToken.teamIdx + 1];
                  const leaderName = leaderId ? teams[draggedSidebarToken.teamIdx].find((m) => m.id === leaderId)?.chief_name : null;
-                 return leaderName ? `T${draggedSidebarToken.teamIdx + 1} (${leaderName})` : `T${draggedSidebarToken.teamIdx + 1}`;
+                 return leaderName ? `Team ${leaderName}` : `Team ${draggedSidebarToken.teamIdx + 1}`;
              })()}
          </div>
       )}

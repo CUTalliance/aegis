@@ -67,7 +67,7 @@ export const exportTacticalMap = async (
             ctx.textBaseline = 'middle';
             const leaderId = teamLeaders && teamLeaders[token.teamIdx + 1];
             const leaderName = leaderId ? teams[token.teamIdx].find((m) => m.id === leaderId)?.chief_name : null;
-            const tokenText = leaderName ? `T${token.teamIdx + 1} (${leaderName})` : `T${token.teamIdx + 1}`;
+            const tokenText = leaderName ? `Team ${leaderName}` : `Team ${token.teamIdx + 1}`;
             ctx.fillText(tokenText, token.x, token.y);
         });
       }

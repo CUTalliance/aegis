@@ -4,6 +4,7 @@ import { useMembersStore } from '../store/membersStore';
 import { useEventsStore } from '../store/eventsStore';
 import { COLORS, EVENT_COLORS } from '../utils/theme';
 import Announcements from '../components/Announcements';
+import { useAuthStore } from '../store/authStore';
 
 const Dashboard = () => {
   const members = useMembersStore((state) => state.members);
@@ -41,6 +42,7 @@ const Dashboard = () => {
   ];
 
   const recentMembers = members.slice(-3).reverse();
+  const role = useAuthStore((s) => s.role);
 
   // History Overview: count finished events by type
   const historyStats = [
@@ -149,73 +151,75 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Recent Members */}
-      <div className="rounded-lg p-6 border" style={{
-        backgroundColor: COLORS.bg_card,
-        borderColor: COLORS.border,
-      }}>
-        <h2 className="text-xl font-bold mb-4" style={{ color: COLORS.text_primary }}>
-          Recently Added Members
-        </h2>
+      {/* Recent Members (R4 only) */}
+      {role === 'R4' && (
+        <div className="rounded-lg p-6 border" style={{
+          backgroundColor: COLORS.bg_card,
+          borderColor: COLORS.border,
+        }}>
+          <h2 className="text-xl font-bold mb-4" style={{ color: COLORS.text_primary }}>
+            Recently Added Members
+          </h2>
 
-        {recentMembers.length > 0 ? (
-          <div className="space-y-3">
-            {recentMembers.map((member) => (
-              <div
-                key={member.id}
-                className="flex items-center justify-between p-3 rounded"
-                style={{ backgroundColor: COLORS.bg_primary }}
-              >
-                <div>
-                  <p className="font-semibold" style={{ color: COLORS.text_primary }}>
-                    {member.chief_name}
-                  </p>
-                  <p style={{ color: COLORS.text_secondary }}>
-                    Base Power: {member.base_power.toLocaleString()} | AP: {member.aeroplane_power.toLocaleString()}
-                  </p>
+          {recentMembers.length > 0 ? (
+            <div className="space-y-3">
+              {recentMembers.map((member) => (
+                <div
+                  key={member.id}
+                  className="flex items-center justify-between p-3 rounded"
+                  style={{ backgroundColor: COLORS.bg_primary }}
+                >
+                  <div>
+                    <p className="font-semibold" style={{ color: COLORS.text_primary }}>
+                      {member.chief_name}
+                    </p>
+                    <p style={{ color: COLORS.text_secondary }}>
+                      Base Power: {member.base_power.toLocaleString()} | AP: {member.aeroplane_power.toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    {member.t11_infantry && (
+                      <span
+                        className="px-2 py-1 rounded text-xs font-semibold"
+                        style={{
+                          backgroundColor: COLORS.badge_on,
+                          color: '#fff',
+                        }}
+                      >
+                        I
+                      </span>
+                    )}
+                    {member.t11_hunter && (
+                      <span
+                        className="px-2 py-1 rounded text-xs font-semibold"
+                        style={{
+                          backgroundColor: COLORS.badge_on,
+                          color: '#fff',
+                        }}
+                      >
+                        H
+                      </span>
+                    )}
+                    {member.t11_rider && (
+                      <span
+                        className="px-2 py-1 rounded text-xs font-semibold"
+                        style={{
+                          backgroundColor: COLORS.badge_on,
+                          color: '#fff',
+                        }}
+                      >
+                        R
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  {member.t11_infantry && (
-                    <span
-                      className="px-2 py-1 rounded text-xs font-semibold"
-                      style={{
-                        backgroundColor: COLORS.badge_on,
-                        color: '#fff',
-                      }}
-                    >
-                      I
-                    </span>
-                  )}
-                  {member.t11_hunter && (
-                    <span
-                      className="px-2 py-1 rounded text-xs font-semibold"
-                      style={{
-                        backgroundColor: COLORS.badge_on,
-                        color: '#fff',
-                      }}
-                    >
-                      H
-                    </span>
-                  )}
-                  {member.t11_rider && (
-                    <span
-                      className="px-2 py-1 rounded text-xs font-semibold"
-                      style={{
-                        backgroundColor: COLORS.badge_on,
-                        color: '#fff',
-                      }}
-                    >
-                      R
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p style={{ color: COLORS.text_muted }}>No members yet</p>
-        )}
-      </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: COLORS.text_muted }}>No members yet</p>
+          )}
+        </div>
+      )}
     </div>
   );
 };

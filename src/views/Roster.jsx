@@ -192,6 +192,7 @@ const Roster = () => {
           <button
             onClick={handleImportClick}
             className="flex items-center gap-2 px-4 py-3 rounded-lg font-semibold"
+            title="Import members from a JSON or Excel file"
             style={{
               backgroundColor: COLORS.bg_input,
               color: COLORS.text_primary,
@@ -204,6 +205,7 @@ const Roster = () => {
           <button
             onClick={handleExportExcel}
             className="flex items-center gap-2 px-4 py-3 rounded-lg font-semibold"
+            title="Export members to an Excel file"
             style={{
               backgroundColor: COLORS.bg_input,
               color: COLORS.text_primary,
@@ -216,6 +218,7 @@ const Roster = () => {
           <button
             onClick={handleExportJSON}
             className="flex items-center gap-2 px-4 py-3 rounded-lg font-semibold"
+            title="Export members as JSON"
             style={{
               backgroundColor: COLORS.bg_input,
               color: COLORS.text_primary,
@@ -228,6 +231,7 @@ const Roster = () => {
           <button
             onClick={handleExportCSV}
             className="flex items-center gap-2 px-4 py-3 rounded-lg font-semibold"
+            title="Export members as CSV"
             style={{
               backgroundColor: COLORS.bg_input,
               color: COLORS.text_primary,
@@ -246,6 +250,7 @@ const Roster = () => {
                 }
               }}
               className="flex items-center gap-2 px-4 py-3 rounded-lg font-semibold"
+              title="Remove all temporary SVS guest members from roster"
               style={{
                 backgroundColor: COLORS.danger,
                 color: '#ffffff',
@@ -261,6 +266,7 @@ const Roster = () => {
               setShowForm(true);
             }}
             className="flex items-center gap-2 px-4 py-3 rounded-lg font-semibold"
+            title="Add a new member to the roster"
             style={{
               backgroundColor: COLORS.accent,
               color: '#1a1c1e',
@@ -436,6 +442,7 @@ const Roster = () => {
                           onClick={() => handleEditClick(member.id)}
                           className="p-2 rounded hover:opacity-80"
                           style={{ color: COLORS.accent }}
+                          title="Edit this member"
                         >
                           <Edit2 size={18} />
                         </button>
@@ -443,6 +450,7 @@ const Roster = () => {
                           onClick={() => handleDeleteClick(member.id)}
                           className="p-2 rounded hover:opacity-80"
                           style={{ color: COLORS.danger }}
+                          title="Delete this member"
                         >
                           <Trash2 size={18} />
                         </button>

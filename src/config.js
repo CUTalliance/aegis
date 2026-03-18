@@ -6,7 +6,7 @@
 // --- Authentication Keys ---
 // Client-side passwords for role separation.
 // Acceptable for this gaming alliance context.
-export const R4_LEADER_KEY = 'CUT-R4-2024';
+export const R4_LEADER_KEY = 'CUT-R4-Aegis';
 export const ALLIANCE_MEMBER_KEY = 'CUT-MEMBER';
 
 // --- GitHub Sync Configuration ---

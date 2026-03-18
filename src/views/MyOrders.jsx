@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useMembersStore } from '../store/membersStore';
 import { useEventsStore } from '../store/eventsStore';
+import { useAuthStore } from '../store/authStore';
 import { UserCircle, Map, ShieldAlert, CheckCircle2, Download } from 'lucide-react';
 
 const MyOrders = () => {
@@ -8,13 +9,15 @@ const MyOrders = () => {
   const myIdentityId = useMembersStore((state) => state.myIdentityId);
   const setMyIdentityId = useMembersStore((state) => state.setMyIdentityId);
   const events = useEventsStore((state) => state.events);
+  const role = useAuthStore((s) => s.role);
 
   const [isSelecting, setIsSelecting] = useState(!myIdentityId);
 
   const myIdentity = members.find((m) => m.id === myIdentityId);
 
   // Find the deployed event — look for Status === 'Deployed' or status === 'Deployed'
-  const activeEvent = events.find((e) => e.Status === 'Deployed' || e.status === 'Deployed');
+  // Only an event explicitly marked as Deployed will be considered active.
+  let activeEvent = events.find((e) => e.Status === 'Deployed' || e.status === 'Deployed');
 
   // Determine alliance state: CALM if no deployed event
   const allianceState = activeEvent ? 'WAR' : 'CALM';
@@ -65,7 +68,7 @@ const MyOrders = () => {
           <p className="text-gray-400 mb-8 text-center">Select your in-game identity to receive personalized deployment orders during weekend events.</p>
 
           <select
-            className="w-full max-w-md bg-gray-900 border border-gray-700 rounded-lg p-4 text-white text-lg mb-6"
+            className="no-print w-full max-w-md bg-gray-900 border border-gray-700 rounded-lg p-4 text-white text-lg mb-6"
             value={myIdentityId || ''}
             onChange={(e) => {
               setMyIdentityId(e.target.value);
@@ -87,6 +90,21 @@ const MyOrders = () => {
   return (
     <div className="min-h-screen p-8" style={{ backgroundColor: '#1a1c1e' }}>
       <div className="w-full max-w-4xl mx-auto bg-[#25282c] rounded-xl p-8 shadow-2xl flex flex-col">
+        <style>{`
+          @media print {
+            .no-print { display: none !important; }
+            .screen-only { display: none !important; }
+            .print-only { display: block !important; }
+            body { -webkit-print-color-adjust: exact; color-adjust: exact; }
+            @page { size: A4 portrait; margin: 10mm; }
+            .print-container { font-size: 12px; line-height: 1.15; color: #111; background: #fff; }
+            .print-container h2, .print-container h3 { color: #111; }
+            .no-break { page-break-inside: avoid; }
+          }
+          @media screen {
+            .print-only { display: none; }
+          }
+        `}</style>
         <div className="flex justify-between items-start mb-8 border-b border-gray-800 pb-6">
           <div>
             <h2 className="text-3xl font-bold text-white uppercase tracking-wider flex items-center gap-3">
@@ -108,7 +126,8 @@ const MyOrders = () => {
           </div>
           <button
             onClick={() => setIsSelecting(true)}
-            className="text-sm text-gray-500 hover:text-white transition-colors"
+            className="no-print text-sm text-gray-500 hover:text-white transition-colors"
+            title="Choose a different in-game identity"
           >
             Change Identity
           </button>
@@ -140,7 +159,7 @@ const MyOrders = () => {
 
                   <div className="mb-6">
                     <p className="text-sm text-gray-400 mb-1">Your Assignment</p>
-                    <p className="text-2xl font-bold text-[#e67e22]">Team {myTeamIndex + 1}</p>
+                    <p className="text-2xl font-bold text-[#e67e22]">{myLeader ? `Team ${myLeader.chief_name}` : `Team ${myTeamIndex + 1}`}</p>
                   </div>
 
                   <div className="mb-6">
@@ -160,29 +179,32 @@ const MyOrders = () => {
                   </div>
                 </div>
 
-                {/* Tactical Map */}
-                <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-6 flex flex-col">
+                {/* Tactical Instructions (no map image for members) */}
+                <div className="screen-only bg-gray-800/50 border border-gray-700 rounded-xl p-6 flex flex-col">
                   <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
                     <Map className="w-6 h-6 text-[#3498db]" />
                     Tactical Instructions
                   </h3>
-                  <div className="flex-1 bg-gray-900 rounded-lg border border-gray-800 p-4 flex flex-col items-center justify-center text-center gap-4">
-                    <img
-                      src={
-                        eventType === 'KOTH' ? '/media/KOTH-map.png' :
-                        eventType === 'RR' ? '/media/rr_map_base.png' :
-                        '/media/svs-map.png'
-                      }
-                      alt={`${eventType} Map`}
-                      className="max-w-full h-auto max-h-[200px] object-contain rounded border border-gray-700"
-                    />
-                    <p className="text-gray-400">
-                      {eventType === 'KOTH'
-                        ? 'Deploy to the central tower and reinforce immediately.'
-                        : eventType === 'RR'
-                        ? "Focus on water treatment centers. Follow your Rally Leader's pings."
-                        : 'Protect the capital. Do not engage without orders.'}
-                    </p>
+                  <div className="flex-1 bg-gray-900 rounded-lg border border-gray-800 p-4 text-sm text-gray-300 no-break">
+                    {/* General Instructions */}
+                    {activeEvent?.general_instructions ? (
+                      <div className="mb-4">
+                        <div className="text-xs text-[#f1c40f] font-bold mb-2">📢 General Instructions</div>
+                        <div style={{ whiteSpace: 'pre-wrap' }}>{activeEvent.general_instructions}</div>
+                      </div>
+                    ) : (
+                      <div className="mb-4 text-gray-500">No general instructions provided.</div>
+                    )}
+
+                    {/* Team Instructions for this member's team */}
+                    {activeEvent?.team_instructions && activeEvent.team_instructions[myTeamIndex + 1] ? (
+                      <div>
+                        <div className="text-xs text-[#e67e22] font-bold mb-2">📋 Team Instructions</div>
+                        <div style={{ whiteSpace: 'pre-wrap' }}>{activeEvent.team_instructions[myTeamIndex + 1]}</div>
+                      </div>
+                    ) : (
+                      <div className="text-gray-500">No team-specific instructions.</div>
+                    )}
                   </div>
                 </div>
                 </div>
@@ -191,7 +213,8 @@ const MyOrders = () => {
                 <div className="mt-4 flex justify-center">
                   <button
                     onClick={() => window.print()}
-                    className="flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all hover:opacity-90"
+                    className="no-print flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all hover:opacity-90"
+                    title="Print or download your personalized orders"
                     style={{ backgroundColor: getThemeColor(), color: '#1a1c1e' }}
                   >
                     <Download className="w-5 h-5" />
@@ -211,6 +234,21 @@ const MyOrders = () => {
           </div>
         )}
       </div>
+
+      {/* Print-only rearranged instructions placed under My Orders for single-page printing */}
+      {activeEvent && (
+        <div className="print-only print-container mt-6 p-4 rounded-lg" style={{ display: 'none' }}>
+          <h2 style={{ fontSize: '18px', marginBottom: '6px' }}>{myIdentity.chief_name} — {myLeader ? `Team ${myLeader.chief_name}` : (myTeamIndex !== -1 ? `Team ${myTeamIndex + 1}` : '')}</h2>
+          <div className="no-break" style={{ background: '#f5f5f5', padding: '8px', borderRadius: '6px', marginBottom: '8px' }}>
+            <div style={{ color: '#b8860b', fontWeight: '700', fontSize: '12px', marginBottom: '6px' }}>📢 General Instructions</div>
+            <div style={{ whiteSpace: 'pre-wrap', color: '#111' }}>{activeEvent.general_instructions || 'No general instructions provided.'}</div>
+          </div>
+          <div className="no-break" style={{ background: '#fafafa', padding: '8px', borderRadius: '6px' }}>
+            <div style={{ color: '#d35400', fontWeight: '700', fontSize: '12px', marginBottom: '6px' }}>📋 Team Instructions</div>
+            <div style={{ whiteSpace: 'pre-wrap', color: '#111' }}>{(activeEvent.team_instructions && activeEvent.team_instructions[myTeamIndex + 1]) || 'No team-specific instructions.'}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

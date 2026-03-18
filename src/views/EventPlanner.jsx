@@ -131,8 +131,12 @@ const EventPlanner = () => {
       created_at: new Date().toISOString(),
     };
 
-    createEvent(eventData);
-    alert('✅ Event saved to your planner!');
+    const result = createEvent(eventData);
+    if (result && result.action === 'updated') {
+      alert('✅ Event updated successfully (overwrote existing event).');
+    } else {
+      alert('✅ Event saved to your planner!');
+    }
   };
 
   const handleDeployEvent = (event) => {
@@ -228,7 +232,7 @@ const EventPlanner = () => {
         teams: teams.map((team, idx) => {
           const leaderId = teamLeaders && teamLeaders[idx + 1];
           const leaderName = leaderId ? team.find((m) => m.id === leaderId)?.chief_name : null;
-          const teamName = leaderName ? `Team ${idx + 1} (${leaderName})` : `Team ${idx + 1}`;
+          const teamName = leaderName ? `Team ${leaderName}` : `Team ${idx + 1}`;
           return {
             team_number: idx + 1,
             team_name: teamName,
@@ -267,7 +271,7 @@ const EventPlanner = () => {
         const teamNum = idx + 1;
         const leaderId = teamLeaders && teamLeaders[teamNum];
         const leaderName = leaderId ? team.find((m) => m.id === leaderId)?.chief_name : null;
-        const teamName = leaderName ? `TEAM ${teamNum} (${leaderName})` : `TEAM ${teamNum}`;
+        const teamName = leaderName ? `Team ${leaderName}` : `Team ${teamNum}`;
         txt += `${teamName} (${team.length} members)\n`;
         txt += `${'-'.repeat(40)}\n`;
         team.forEach((member) => {
@@ -386,8 +390,12 @@ const EventPlanner = () => {
 
   const handleMarkAsFinished = (event) => {
     if (window.confirm(`Mark "${event.event_name}" as finished?`)) {
-      markAsFinished(event.id);
-      alert('✅ Event moved to Events Done.');
+      const res = markAsFinished(event.id);
+      if (res && res.action === 'updated') {
+        alert('✅ Event moved to Events Done (overwrote existing finished event).');
+      } else {
+        alert('✅ Event moved to Events Done.');
+      }
     }
   };
 

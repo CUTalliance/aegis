@@ -59,13 +59,13 @@ const Login = ({ onLogin }) => {
               className="block text-sm font-semibold mb-2"
               style={{ color: COLORS.text_secondary }}
             >
-              Access Key
+              Password Key
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your alliance access key..."
+              placeholder="Enter your Password key..."
               className="w-full px-4 py-3 rounded-lg border text-lg"
               style={{
                 backgroundColor: COLORS.bg_input,
@@ -93,6 +93,7 @@ const Login = ({ onLogin }) => {
             type="submit"
             disabled={loading || !password}
             className="w-full flex items-center justify-center gap-2 py-3 rounded-lg font-semibold text-lg transition-all"
+            title="Log in with the provided access key"
             style={{
               backgroundColor: loading || !password ? COLORS.border : COLORS.accent,
               color: loading || !password ? COLORS.text_muted : '#1a1c1e',

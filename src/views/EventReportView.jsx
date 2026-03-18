@@ -93,6 +93,7 @@ const EventReportView = ({ event, onClose }) => {
           key={num}
           onClick={() => onChange(num)}
           className="transition-transform hover:scale-110 rounded"
+          title={`Set rating to ${num}`}
           style={{
             color: num <= (value || 0) ? '#1a1c1e' : COLORS.text_muted,
             backgroundColor: num <= (value || 0) ? theme.accent : 'transparent',
@@ -127,6 +128,7 @@ const EventReportView = ({ event, onClose }) => {
             onClick={onClose}
             className="absolute top-4 right-4 p-2 rounded-lg hover:opacity-80"
             style={{ color: COLORS.text_primary, backgroundColor: 'rgba(0,0,0,0.3)' }}
+            title="Close report"
           >
             <X size={20} />
           </button>
@@ -333,6 +335,7 @@ const EventReportView = ({ event, onClose }) => {
                 }
               }}
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg font-semibold"
+              title="Export the After Action Report as a PNG image"
               style={{
                 backgroundColor: theme.accent,
                 color: '#1a1c1e',

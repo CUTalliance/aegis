@@ -95,6 +95,7 @@ const MemberForm = ({ member, onSave, onCancel }) => {
           <button
             onClick={onCancel}
             className="p-1 rounded hover:opacity-80"
+            title="Close member form without saving"
             style={{ color: COLORS.text_primary }}
           >
             <X size={24} />
@@ -268,6 +269,7 @@ const MemberForm = ({ member, onSave, onCancel }) => {
           <button
             onClick={handleSubmit}
             className="flex-1 py-2 rounded font-semibold"
+            title={member ? 'Save member changes' : 'Add new member'}
             style={{
               backgroundColor: COLORS.accent,
               color: '#1a1c1e',
@@ -278,6 +280,7 @@ const MemberForm = ({ member, onSave, onCancel }) => {
           <button
             onClick={onCancel}
             className="flex-1 py-2 rounded font-semibold border"
+            title="Cancel and close form"
             style={{
               backgroundColor: COLORS.bg_primary,
               borderColor: COLORS.border,

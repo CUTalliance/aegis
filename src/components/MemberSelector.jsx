@@ -45,6 +45,7 @@ const MemberSelector = ({ members, selectedIds, onSelectionChange, onClose }) =>
           <button
             onClick={onClose}
             className="p-1 rounded hover:opacity-80"
+            title="Close member selector"
             style={{ color: COLORS.text_primary }}
           >
             <X size={24} />
@@ -71,6 +72,7 @@ const MemberSelector = ({ members, selectedIds, onSelectionChange, onClose }) =>
         <button
           onClick={handleSelectAll}
           className="mb-4 px-4 py-2 rounded font-semibold"
+          title="Select or deselect all filtered members"
           style={{
             backgroundColor: COLORS.bg_primary,
             color: COLORS.accent,
@@ -87,6 +89,7 @@ const MemberSelector = ({ members, selectedIds, onSelectionChange, onClose }) =>
               key={member.id}
               onClick={() => handleToggle(member.id)}
               className="p-3 rounded border text-left transition-all flex items-center gap-3"
+              title={`Toggle selection for ${member.chief_name}`}
               style={{
                 backgroundColor: selectedIds.includes(member.id)
                   ? COLORS.accent
@@ -128,6 +131,7 @@ const MemberSelector = ({ members, selectedIds, onSelectionChange, onClose }) =>
           <button
             onClick={onClose}
             className="flex-1 py-2 rounded font-semibold"
+            title="Finish selection and close"
             style={{
               backgroundColor: COLORS.accent,
               color: '#1a1c1e',
@@ -138,6 +142,7 @@ const MemberSelector = ({ members, selectedIds, onSelectionChange, onClose }) =>
           <button
             onClick={() => onSelectionChange([])}
             className="flex-1 py-2 rounded font-semibold border"
+            title="Clear selected members"
             style={{
               backgroundColor: COLORS.bg_primary,
               borderColor: COLORS.border,

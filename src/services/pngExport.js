@@ -202,6 +202,20 @@ export const exportOverviewPNG = async (
     padding: 16px;
     margin-bottom: 16px;
   `;
+  // Build teams summary HTML using leader names when available
+  const teamsStatsHtml = stats.teams.map(t => {
+    const leaderId = teamLeaders ? teamLeaders[t.teamNum] : null;
+    const leaderName = leaderId && teams[t.teamNum - 1]
+      ? teams[t.teamNum - 1].find((m) => m.id === leaderId)?.chief_name
+      : null;
+    const label = leaderName ? `Team ${leaderName}` : `Team ${t.teamNum}`;
+    return `
+      <div style="color: ${COLORS.textMuted}; font-size: 11px;">
+        ${label}: ${t.memberCount} members, Avg: ${t.avgScore}
+      </div>
+    `;
+  }).join('');
+
   balanceBox.innerHTML = `
     <div style="color: ${COLORS.textPrimary}; font-size: 14px; font-weight: bold; margin-bottom: 8px;">
       ⚖️ Team Balance
@@ -224,11 +238,7 @@ export const exportOverviewPNG = async (
       "></div>
     </div>
     <div style="display: flex; gap: 16px; margin-top: 8px;">
-      ${stats.teams.map(t => `
-        <div style="color: ${COLORS.textMuted}; font-size: 11px;">
-          Team ${t.teamNum}: ${t.memberCount} members, Avg: ${t.avgScore}
-        </div>
-      `).join('')}
+      ${teamsStatsHtml}
     </div>
   `;
   container.appendChild(balanceBox);
@@ -263,7 +273,7 @@ export const exportOverviewPNG = async (
     
     const leaderId = teamLeaders ? teamLeaders[idx + 1] : null;
     const leaderName = leaderId ? team.find((m) => m.id === leaderId)?.chief_name : null;
-    const teamName = leaderName ? `T${idx + 1} (${leaderName})` : `TEAM ${idx + 1}`;
+    const teamName = leaderName ? `Team ${leaderName}` : `Team ${idx + 1}`;
 
     teamBox.innerHTML = `
       <div style="flex: 1;">
@@ -336,18 +346,22 @@ export const exportOverviewPNG = async (
   `;
   container.appendChild(footer);
 
-  // Append to body temporarily
+  // Append to body temporarily and measure actual height to avoid clipping
   document.body.appendChild(container);
 
   try {
     // Wait for next frame to ensure DOM is rendered
-    await new Promise(resolve => requestAnimationFrame(resolve));
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
-    // Generate PNG with better options
+    // Measure actual content height (use scrollHeight to include overflow)
+    const actualHeight = Math.max(container.scrollHeight, container.offsetHeight, height);
+    container.style.height = `${actualHeight}px`;
+
+    // Generate PNG with measured height to avoid clipping
     const dataUrl = await toPng(container, {
       width,
-      height,
+      height: actualHeight,
       cacheBust: true,
       pixelRatio: 2,
       backgroundColor: COLORS.bg,
@@ -413,7 +427,7 @@ export const exportTeamPNGs = async (
     // Team Banner
     const leaderId = teamLeaders ? teamLeaders[idx + 1] : null;
     const leaderName = leaderId ? team.find((m) => m.id === leaderId)?.chief_name : null;
-    const teamName = leaderName ? `TEAM ${leaderName.toUpperCase()}` : `TEAM ${teamNum}`;
+    const teamName = leaderName ? `Team ${leaderName}` : `Team ${teamNum}`;
 
     const banner = document.createElement('div');
     banner.style.cssText = `
@@ -516,12 +530,16 @@ export const exportTeamPNGs = async (
 
     try {
       // Wait for next frame to ensure DOM is rendered
-      await new Promise(resolve => requestAnimationFrame(resolve));
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
+      // Measure actual content height to avoid clipping
+      const actualHeight = Math.max(container.scrollHeight, container.offsetHeight, height);
+      container.style.height = `${actualHeight}px`;
 
       const dataUrl = await toPng(container, {
         width,
-        height,
+        height: actualHeight,
         cacheBust: true,
         pixelRatio: 2,
         backgroundColor: COLORS.bg,

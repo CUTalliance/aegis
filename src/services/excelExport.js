@@ -396,15 +396,21 @@ export const exportEventToExcel = (
   // Sheet 2: Deployment Plan
   // ══════════════════════════════════════════════════════════════
   const deploymentData = [];
+  let headerRowIndices = [];
 
   teams.forEach((team, teamIdx) => {
     const teamNum = teamIdx + 1;
     const leaderId = teamLeaders ? teamLeaders[teamNum] : null;
     const leaderName = leaderId ? team.find((m) => m.id === leaderId)?.chief_name : null;
-    const teamName = leaderName ? `TEAM ${teamNum} (${leaderName})` : `TEAM ${teamNum}`;
+    // Use Rally Leader name as the team label when available
+    const teamName = leaderName ? `Team ${leaderName}` : `Team ${teamNum}`;
+    const headerRowIndex = deploymentData.length;
     
     // Team header
     deploymentData.push([teamName, '', '']);
+    // Track header rows for styling (supports leader-name headers)
+    headerRowIndices = headerRowIndices || [];
+    headerRowIndices.push(headerRowIndex);
     deploymentData.push(['Chief Name', `Score (${eventType})`, 'Power']);
 
     // Team members
@@ -447,7 +453,8 @@ export const exportEventToExcel = (
   };
   for (let r = 0; r < deploymentData.length; r++) {
     const cellVal = String(deploymentData[r][0] || '');
-    if (cellVal.startsWith('TEAM ') || cellVal === 'RESERVE LIST' || cellVal === 'Chief Name') {
+    const isHeaderRow = (typeof headerRowIndices !== 'undefined' && headerRowIndices.includes(r));
+    if (isHeaderRow || cellVal.startsWith('TEAM ') || cellVal.startsWith('Team ') || cellVal === 'RESERVE LIST' || cellVal === 'Chief Name') {
       for (let c = 0; c < 3; c++) {
         const addr = XLSX.utils.encode_cell({ r, c });
         if (wsDeployment[addr]) wsDeployment[addr].s = depHeaderStyle;

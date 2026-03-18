@@ -55,6 +55,29 @@ export const useEventsStore = create((set, get) => ({
 
   createEvent: (eventData) => {
     const { events } = get();
+
+    // If an event with the same name and type exists, overwrite it
+    const existingIndex = events.findIndex(
+      (e) => e.event_name === eventData.event_name && e.event_type === eventData.event_type
+    );
+
+    if (existingIndex !== -1) {
+      const existing = events[existingIndex];
+      const updatedEvent = {
+        ...existing,
+        ...eventData,
+        id: existing.id,
+        // keep original createdAt if present, update modified time
+        createdAt: existing.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      const updated = [...events];
+      updated[existingIndex] = updatedEvent;
+      saveToStorage(EVENTS_KEY, updated);
+      set({ events: updated });
+      return { action: 'updated', id: existing.id };
+    }
+
     const newEvent = {
       ...eventData,
       id: Date.now().toString(),
@@ -63,6 +86,7 @@ export const useEventsStore = create((set, get) => ({
     const updated = [newEvent, ...events];
     saveToStorage(EVENTS_KEY, updated);
     set({ events: updated });
+    return { action: 'created', id: newEvent.id };
   },
 
   updateEvent: (id, updates) => {
@@ -85,12 +109,38 @@ export const useEventsStore = create((set, get) => ({
     if (!event) return;
 
     const finishedEvent = { ...event, finishedAt: new Date().toISOString() };
+
+    // If a finished event with same name and type exists, overwrite it
+    const existingIndex = finishedEvents.findIndex(
+      (fe) => fe.event_name === finishedEvent.event_name && fe.event_type === finishedEvent.event_type
+    );
+
     const updatedEvents = events.filter((e) => e.id !== id);
+
+    if (existingIndex !== -1) {
+      const existing = finishedEvents[existingIndex];
+      const updatedFinishedEvent = {
+        ...existing,
+        ...finishedEvent,
+        id: existing.id,
+        createdAt: existing.createdAt || finishedEvent.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      const updatedFinished = [...finishedEvents];
+      updatedFinished[existingIndex] = updatedFinishedEvent;
+
+      saveToStorage(EVENTS_KEY, updatedEvents);
+      saveToStorage(FINISHED_EVENTS_KEY, updatedFinished);
+      set({ events: updatedEvents, finishedEvents: updatedFinished });
+      return { action: 'updated', id: updatedFinishedEvent.id };
+    }
+
     const updatedFinished = [finishedEvent, ...finishedEvents];
 
     saveToStorage(EVENTS_KEY, updatedEvents);
     saveToStorage(FINISHED_EVENTS_KEY, updatedFinished);
     set({ events: updatedEvents, finishedEvents: updatedFinished });
+    return { action: 'created', id: finishedEvent.id };
   },
 
   updateFinishedEvent: (id, updates) => {

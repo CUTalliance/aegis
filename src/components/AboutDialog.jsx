@@ -23,6 +23,7 @@ const AboutDialog = ({ isOpen, onClose }) => {
         <button
           onClick={onClose}
           className="absolute top-3 right-3 p-1 rounded hover:opacity-80 transition-opacity"
+          title="Close about dialog"
           style={{ color: COLORS.text_muted }}
         >
           <X size={18} />
